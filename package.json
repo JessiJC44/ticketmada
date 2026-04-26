@@ -1,0 +1,18 @@
+{
+  "name": "ticketmada",
+  "version": "1.0.0",
+  "description": "TicketMada - Plateforme de billetterie #1 à Madagascar",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "node backend/server-node.js",
+    "php": "php -S 127.0.0.1:8000 -t . backend/server.php"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.0.0",
+    "electron": "^28.0.0"
+  },
+  "author": "TicketMada",
+  "license": "MIT"
+}

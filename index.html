@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketMada - Accueil Développement</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-cream: #FAF7F2;
+            --accent-coral: #FF6B4A;
+            --accent-yellow: #FECA57;
+            --accent-mint: #00D9A5;
+            --accent-blue: #4A90FF;
+            --accent-purple: #9B59B6;
+            --text-dark: #1a1a1a;
+            --text-light: #666;
+            --border-dark: #1a1a1a;
+            --shadow-brutal: 4px 4px 0px #1a1a1a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-cream);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .logo-box {
+            width: 60px;
+            height: 60px;
+            background: var(--accent-coral);
+            border: 4px solid var(--border-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            transform: rotate(-3deg);
+            box-shadow: var(--shadow-brutal);
+        }
+        .logo h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+        }
+        .logo h1 span { color: var(--accent-coral); }
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .badge-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .tech-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 2px solid var(--border-dark);
+            background: white;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .page-card {
+            background: white;
+            border: 3px solid var(--border-dark);
+            box-shadow: var(--shadow-brutal);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: var(--text-dark);
+            overflow: hidden;
+        }
+        .page-card:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 8px 8px 0px var(--border-dark);
+        }
+        .card-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid var(--border-dark);
+            flex-shrink: 0;
+        }
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 3px;
+        }
+        .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+        .card-footer {
+            padding: 12px 20px;
+            background: #f8f8f8;
+            border-top: 2px solid var(--border-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-url {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-light);
+        }
+        .card-arrow {
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .page-card:hover .card-arrow {
+            transform: translateX(4px);
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+        }
+        .footer p {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+        .footer a {
+            color: var(--accent-coral);
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">
+            <div class="logo-box">🎫</div>
+            <h1>Ticket<span>Mada</span></h1>
+        </div>
+        <p class="subtitle">Plateforme de billetterie événementielle de Madagascar</p>
+        <div class="badge-row">
+            <span class="tech-badge" style="background: #e3f2fd;">⚡ Electron</span>
+            <span class="tech-badge" style="background: #ffebee;">🔴 Laravel</span>
+            <span class="tech-badge" style="background: #f3e5f5;">🐘 PHP</span>
+            <span class="tech-badge" style="background: #e8f5e9;">💚 Vue.js</span>
+            <span class="tech-badge" style="background: #fff3e0;">🔵 Node.js</span>
+            <span class="tech-badge" style="background: #fce4ec;">🗄️ MySQL</span>
+        </div>
+    </div>
+
+    <div class="section-title">👤 Pages Utilisateur</div>
+    <div class="pages-grid">
+        <a href="/User/ticketmada-landing.html" class="page-card">
+            <div class="card-header">
+                <div class="card-icon" style="background: var(--accent-coral);">🏠</div>
+                <div>
+                    <div class="card-title">Landing Page</div>
+                    <div class="card-desc">Page d'accueil publique — événements, catégories, connexion</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-url">/User/ticketmada-landing.html</span>
+                <span class="card-arrow">→</span>
+            </div>
+        </a>
+
+        <a href="/User/ticketmada-ticketing.html" class="page-card">
+            <div class="card-header">
+                <div class="card-icon" style="background: var(--accent-yellow);">🎫</div>
+                <div>
+                    <div class="card-title">Billetterie</div>
+                    <div class="card-desc">Options de billetterie, fonctionnalités, tarifs</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-url">/User/ticketmada-ticketing.html</span>
+                <span class="card-arrow">→</span>
+            </div>
+        </a>
+
+        <a href="/User/ticketmada-organisateur.html" class="page-card">
+            <div class="card-header">
+                <div class="card-icon" style="background: var(--accent-mint);">📋</div>
+                <div>
+                    <div class="card-title">Organisateur</div>
+                    <div class="card-desc">Page pour les organisateurs d'événements</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-url">/User/ticketmada-organisateur.html</span>
+                <span class="card-arrow">→</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="section-title">🛡️ Panneau d'administration</div>
+    <div class="pages-grid">
+        <a href="/Admin/ticketmada-dashboard.html" class="page-card">
+            <div class="card-header">
+                <div class="card-icon" style="background: var(--accent-blue);">📊</div>
+                <div>
+                    <div class="card-title">Dashboard Admin</div>
+                    <div class="card-desc">Événements, plan de salle, contrôle QR, statistiques, billets</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-url">/Admin/ticketmada-dashboard.html</span>
+                <span class="card-arrow">→</span>
+            </div>
+        </a>
+
+        <a href="/Admin/ticketmada-superadmin.html" class="page-card">
+            <div class="card-header">
+                <div class="card-icon" style="background: var(--accent-purple);">🛡️</div>
+                <div>
+                    <div class="card-title">SuperAdmin</div>
+                    <div class="card-desc">Gestion admins, contenu site, paiements MVola/Orange/Airtel, commission 3%</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-url">/Admin/ticketmada-superadmin.html</span>
+                <span class="card-arrow">→</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 TicketMada — Serveur de développement</p>
+        <p style="margin-top: 8px; font-size: 0.75rem;">Paiement: MVola (Telma) • Orange Money (Orange) • Airtel Money (Airtel)</p>
+    </div>
+
+</body>
+</html>
