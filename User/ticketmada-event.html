@@ -595,6 +595,11 @@ const app = createApp({
         }
 
         document.title = 'TicketMada - ' + this.event.name;
+        // Try to load zone availability from API
+        try {
+            const seatsResult = await window.api.get('/events/' + this.eventId + '/seats');
+            if (seatsResult.zones) { this.apiZones = seatsResult.zones; }
+        } catch(e) { console.warn('Seats API not available, using calculated zones'); }
         this.buildVenueMap();
 
         // Keyboard: Escape closes popup

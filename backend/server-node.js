@@ -352,6 +352,24 @@ async function handleEvents(req, res, parts) {
         return sendJSON(res, { categories: cats });
     }
 
+    // Seat/zone availability for an event
+    if (action === 'seats' && req.method === 'GET' && id) {
+        const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
+        if (!event) return sendError(res, 'Événement non trouvé', 404);
+        const sold = db.prepare("SELECT type, COUNT(*) as count FROM tickets WHERE event_id = ? AND status IN ('active','scanned') GROUP BY type").all(id);
+        const soldMap = {};
+        sold.forEach(s => { soldMap[s.type.toLowerCase()] = s.count; });
+        const capacity = event.capacity || 1000;
+        const zoneDistribution = { vip: 0.08, premium: 0.20, standard: 0.35, eco: 0.30, pit: 0.07 };
+        const zonePrices = { vip: 150000, premium: 80000, standard: 40000, eco: 20000, pit: 60000 };
+        const zones = Object.entries(zoneDistribution).map(([zoneId, pct]) => {
+            const total = Math.round(capacity * pct);
+            const soldCount = soldMap[zoneId] || 0;
+            return { id: zoneId, name: zoneId.charAt(0).toUpperCase() + zoneId.slice(1), total, sold: Math.min(soldCount, total), available: Math.max(0, total - soldCount), price: zonePrices[zoneId] || 40000 };
+        });
+        return sendJSON(res, { event_id: parseInt(id), capacity, zones });
+    }
+
     if (req.method === 'GET' && id) {
         const event = db.prepare('SELECT e.*, u.name as organizer_name FROM events e LEFT JOIN users u ON e.organizer_id = u.id WHERE e.id = ?').get(id);
         if (!event) return sendError(res, 'Événement non trouvé', 404);
