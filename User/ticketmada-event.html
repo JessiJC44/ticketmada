@@ -156,6 +156,19 @@
         .qty-confirm { width: 100%; padding: 18px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; background: var(--accent-coral); color: white; border: 3px solid var(--border-dark); box-shadow: var(--shadow-brutal); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .qty-confirm:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0px #1a1a1a; }
 
+        
+        /* View from Seat */
+        .view-seat-panel { margin-top: 0; padding: 20px 24px; border-top: 3px solid var(--border-dark); background: white; display: none; }
+        .view-seat-panel.active { display: block; }
+        .view-seat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .view-seat-header h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+        .view-seat-header span { font-size: 0.8rem; color: var(--text-light); }
+        .view-seat-preview { position: relative; width: 100%; height: 180px; border: 3px solid var(--border-dark); overflow: hidden; background: #1a1a1a; }
+        .view-seat-svg { width: 100%; height: 100%; }
+        .view-seat-info { display: flex; gap: 20px; margin-top: 12px; }
+        .view-seat-tag { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-light); }
+        .view-seat-tag .v-icon { color: var(--accent-mint); }
+
         /* ── Responsive ── */
         @media (max-width: 1100px) {
             .main-content { grid-template-columns: 1fr; }
@@ -270,6 +283,55 @@
                     <div class="legend-dot" :style="{ background: zone.color }"></div>
                     {{ zone.name }} — {{ formatPrice(zone.price) }} Ar
                     <span class="legend-avail">({{ zone.available }})</span>
+                </div>
+            </div>
+            <!-- View from Seat -->
+            <div class="view-seat-panel" :class="{ active: selectedZone }">
+                <div class="view-seat-header">
+                    <h4>👁️ {{ lang === 'fr' ? 'Vue depuis' : 'View from' }} {{ getZone(selectedZone)?.name || '' }}</h4>
+                    <span>{{ getZone(selectedZone)?.name }} · {{ formatPrice(getZone(selectedZone)?.price || 0) }} Ar</span>
+                </div>
+                <div class="view-seat-preview">
+                    <svg class="view-seat-svg" viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Stage perspective view -->
+                        <defs>
+                            <linearGradient id="stageLight" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" :style="'stop-color:' + (getZone(selectedZone)?.color || '#4A90FF') + ';stop-opacity:0.4'" />
+                                <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="0" y="0" width="500" height="200" fill="#1a1a1a"/>
+                        <!-- Ambient light -->
+                        <ellipse cx="250" cy="80" rx="200" ry="100" fill="url(#stageLight)" opacity="0.5"/>
+                        <!-- Stage floor -->
+                        <polygon :points="viewStagePoints" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+                        <!-- Stage lights -->
+                        <circle cx="150" cy="15" r="4" fill="#FECA57" opacity="0.8"/>
+                        <circle cx="250" cy="10" r="5" fill="#FF6B4A" opacity="0.9"/>
+                        <circle cx="350" cy="15" r="4" fill="#4A90FF" opacity="0.8"/>
+                        <line x1="150" y1="19" x2="200" y2="80" stroke="#FECA57" stroke-width="1" opacity="0.15"/>
+                        <line x1="250" y1="15" x2="250" y2="85" stroke="#FF6B4A" stroke-width="1" opacity="0.2"/>
+                        <line x1="350" y1="19" x2="300" y2="80" stroke="#4A90FF" stroke-width="1" opacity="0.15"/>
+                        <!-- Performers silhouettes -->
+                        <circle cx="200" cy="95" r="6" fill="#555"/>
+                        <rect x="197" y="101" width="6" height="14" rx="2" fill="#555"/>
+                        <circle cx="250" cy="88" r="7" fill="#666"/>
+                        <rect x="246" y="95" width="8" height="16" rx="2" fill="#666"/>
+                        <circle cx="300" cy="95" r="6" fill="#555"/>
+                        <rect x="297" y="101" width="6" height="14" rx="2" fill="#555"/>
+                        <!-- Crowd silhouettes (closer = larger based on zone) -->
+                        <g :opacity="viewCrowdOpacity">
+                            <circle v-for="h in viewCrowdHeads" :key="h.x" :cx="h.x" :cy="h.y" :r="h.r" fill="#333"/>
+                        </g>
+                        <!-- Zone label -->
+                        <rect x="10" y="170" width="120" height="24" rx="4" :fill="getZone(selectedZone)?.color || '#4A90FF'" opacity="0.9"/>
+                        <text x="70" y="186" text-anchor="middle" fill="white" font-size="11" font-family="Syne" font-weight="700">{{ getZone(selectedZone)?.name || '' }}</text>
+                    </svg>
+                </div>
+                <div class="view-seat-info">
+                    <div class="view-seat-tag"><v-icon size="x-small">mdi-eye</v-icon> {{ viewQualityText }}</div>
+                    <div class="view-seat-tag"><v-icon size="x-small">mdi-ruler</v-icon> {{ viewDistanceText }}</div>
+                    <div class="view-seat-tag"><v-icon size="x-small">mdi-volume-high</v-icon> {{ viewSoundText }}</div>
                 </div>
             </div>
         </div>
@@ -406,6 +468,40 @@ const app = createApp({
     },
     computed: {
         svgViewBox() { return '0 0 700 500'; },
+        viewStagePoints() {
+            const z = this.selectedZone;
+            const depths = { pit: '100,130 400,130 450,190 50,190', vip: '120,120 380,120 430,190 70,190', premium: '140,110 360,110 420,190 80,190', standard: '160,100 340,100 400,190 100,190', eco: '180,90 320,90 380,190 120,190' };
+            return depths[z] || '150,105 350,105 410,190 90,190';
+        },
+        viewCrowdOpacity() {
+            return { pit: 0, vip: 0.3, premium: 0.5, standard: 0.6, eco: 0.7 }[this.selectedZone] || 0.4;
+        },
+        viewCrowdHeads() {
+            const z = this.selectedZone;
+            if (z === 'pit') return [];
+            const rows = { vip: 1, premium: 2, standard: 3, eco: 4 }[z] || 2;
+            const heads = [];
+            for (let r = 0; r < rows; r++) {
+                const y = 160 + r * 14;
+                const count = 12 + r * 4;
+                for (let i = 0; i < count; i++) {
+                    heads.push({ x: 50 + (400 / count) * i + Math.random() * 10, y: y + Math.random() * 6, r: 5 - r * 0.5 });
+                }
+            }
+            return heads;
+        },
+        viewQualityText() {
+            const q = { pit: {fr:'Immersive',en:'Immersive'}, vip: {fr:'Parfaite',en:'Perfect'}, premium: {fr:'Très bonne',en:'Great'}, standard: {fr:'Bonne',en:'Good'}, eco: {fr:'Correcte',en:'Fair'} };
+            return (q[this.selectedZone] || q.standard)[this.lang];
+        },
+        viewDistanceText() {
+            const d = { pit: '0-5m', vip: '5-15m', premium: '15-30m', standard: '30-50m', eco: '50m+' };
+            return d[this.selectedZone] || '—';
+        },
+        viewSoundText() {
+            const s = { pit: {fr:'Intense',en:'Intense'}, vip: {fr:'Excellente',en:'Excellent'}, premium: {fr:'Très bon',en:'Very good'}, standard: {fr:'Bon',en:'Good'}, eco: {fr:'Correct',en:'Fair'} };
+            return (s[this.selectedZone] || s.standard)[this.lang];
+        },
         stageX() { return 200; },
         stageY() { return 10; },
         stageW() { return 300; },
