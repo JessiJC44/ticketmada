@@ -386,7 +386,7 @@
         
         <div class="search-modal" :class="{ active: showSearch }">
             <div class="search-close" @click="showSearch = false">✕</div>
-            <div class="search-container"><div style="position: relative;"><v-icon class="search-icon">mdi-magnify</v-icon><input type="text" class="search-input" :placeholder="t.search.placeholder" v-model="searchQuery" @keyup.esc="showSearch = false" ref="searchInput"></div></div>
+            <div class="search-container"><div style="position: relative;"><v-icon class="search-icon">mdi-magnify</v-icon><input type="text" class="search-input" :placeholder="t.search.placeholder" v-model="searchQuery" @keyup.esc="showSearch = false" @keyup.enter="goToSearch" ref="searchInput"></div></div>
         </div>
         
         <div class="auth-modal" :class="{ active: showAuth }">
@@ -490,6 +490,11 @@
                 }
             },
             methods: {
+                goToSearch() {
+                    if (this.searchQuery.trim()) {
+                        window.location.href = 'ticketmada-search.html?q=' + encodeURIComponent(this.searchQuery.trim());
+                    }
+                },
                 toggleLang() { this.lang = this.lang === 'fr' ? 'en' : 'fr'; localStorage.setItem('ticketmada-lang', this.lang); document.documentElement.lang = this.lang; },
                 openAuth(mode) { this.authMode = mode; this.showAuth = true; },
                 loginWith(provider) {
