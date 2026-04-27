@@ -14,7 +14,7 @@ window.TICKETMADA_CONFIG = {
     API_BASE: '',  // empty = same origin, set to 'https://ticketmada-api.onrender.com' for production
     
     // Base path for GitHub Pages (set to '/ticketmada' for github.io, empty for custom domain)
-    BASE_PATH: '',  // '/ticketmada' for GitHub Pages, '' for local dev or custom domain
+    BASE_PATH: '/ticketmada',  // '/ticketmada' for GitHub Pages, '' for local dev or custom domain
     
     // Pages config
     pages: {
