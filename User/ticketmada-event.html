@@ -29,6 +29,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; background: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; }
 
+        
+        /* Social Proof */
+        .social-proof-bar { display: flex; align-items: center; gap: 20px; padding: 10px 40px; background: #fff8f0; border-bottom: 3px solid var(--accent-yellow); }
+        .social-proof-bar .sp-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 24px; width: 100%; }
+        .sp-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; }
+        .sp-live { width: 8px; height: 8px; background: #e74c3c; border-radius: 50%; animation: sp-pulse 2s infinite; }
+        @keyframes sp-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .sp-fire { animation: sp-wiggle 2s infinite; display: inline-block; }
+        @keyframes sp-wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+
         /* ── Navbar ── */
         .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 16px 40px; background: var(--bg-cream); border-bottom: 3px solid var(--border-dark); }
         .navbar-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
@@ -192,6 +202,15 @@
                     <span class="event-meta-badge" v-if="event.status === 'active'">{{ lang === 'fr' ? 'En vente' : 'On sale' }}</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Social Proof Bar -->
+    <div class="social-proof-bar">
+        <div class="sp-inner">
+            <div class="sp-item"><span class="sp-live"></span> 👥 <strong>{{ viewersCount }}</strong> {{ lang === 'fr' ? 'personnes consultent' : 'people viewing' }}</div>
+            <div class="sp-item"><span class="sp-fire">🔥</span> <strong>{{ recentSales }}</strong> {{ lang === 'fr' ? 'ventes cette heure' : 'sales this hour' }}</div>
+            <div class="sp-item" v-if="event.tickets_sold">🎫 {{ Math.round((event.tickets_sold / event.capacity) * 100) }}% {{ lang === 'fr' ? 'vendu' : 'sold' }}</div>
         </div>
     </div>
 
@@ -378,6 +397,8 @@ const app = createApp({
             qtyListing: null,
             qty: 2,
             // Generated map data
+            viewersCount: 0,
+            recentSales: 0,
             venueTemplate: 'arena',
             mapZones: [],
             listings: []
@@ -426,12 +447,20 @@ const app = createApp({
             this.showQty = true;
         },
         confirmPurchase() {
-            const total = Math.round(this.qtyListing.price * this.qty * 1.03);
-            // For now, show a confirmation and close
-            alert((this.lang === 'fr'
-                ? `✅ ${this.qty} billet(s) ${this.qtyListing.zoneName} réservé(s) !\nTotal: ${this.formatPrice(total)} Ar\n\n(Module de paiement à venir)`
-                : `✅ ${this.qty} ${this.qtyListing.zoneName} ticket(s) reserved!\nTotal: ${this.formatPrice(total)} Ar\n\n(Payment module coming soon)`));
-            this.showQty = false;
+            // Navigate to checkout with order params
+            const params = new URLSearchParams({
+                event_id: this.event.id || this.eventId,
+                event_name: this.event.name || 'Événement',
+                zone_name: this.qtyListing.zoneName,
+                zone_color: this.qtyListing.color,
+                qty: this.qty,
+                price: this.qtyListing.price,
+                date: this.formatDate(this.event.date_start),
+                venue: this.event.venue || '',
+                image: this.event.image_url || '',
+                available: this.qtyListing.available
+            });
+            window.location.href = 'ticketmada-checkout.html?' + params.toString();
         },
 
         // Build the interactive venue map from the SeatmapEngine
@@ -601,6 +630,16 @@ const app = createApp({
             if (seatsResult.zones) { this.apiZones = seatsResult.zones; }
         } catch(e) { console.warn('Seats API not available, using calculated zones'); }
         this.buildVenueMap();
+
+        
+        // Social proof simulation
+        this.viewersCount = Math.floor(Math.random() * 25) + 12;
+        this.recentSales = Math.floor(Math.random() * 6) + 3;
+        setInterval(() => {
+            this.viewersCount += Math.floor(Math.random() * 5) - 2;
+            this.viewersCount = Math.max(6, this.viewersCount);
+            if (Math.random() > 0.6) this.recentSales = Math.min(this.recentSales + 1, 20);
+        }, 10000);
 
         // Keyboard: Escape closes popup
         document.addEventListener('keydown', e => { if (e.key === 'Escape') this.showQty = false; });
