@@ -253,7 +253,7 @@
                 <img :src="ev.image_url || 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400'" class="result-image" :alt="ev.name">
                 <div class="result-info">
                     <div class="result-category">{{ ev.category }}</div>
-                    <div class="result-title">{{ ev.emoji }} {{ ev.name }}</div>
+                    <div class="result-title">{{ ev.emoji }} {{ ev.name }} <a v-if="ev.organizer_name" :href="'ticketmada-artist.html?name=' + encodeURIComponent(ev.organizer_name || ev.name.split(' ')[0])" @click.stop style="font-size:0.75rem;color:var(--accent-coral);text-decoration:none;font-family:Syne;font-weight:600;margin-left:8px;">{{ lang === 'fr' ? 'Voir l\'artiste →' : 'View artist →' }}</a></div>
                     <div class="result-details">
                         <span><v-icon size="x-small">mdi-calendar</v-icon> {{ formatDate(ev.date_start) }}</span>
                         <span v-if="ev.date_end"><v-icon size="x-small">mdi-calendar-end</v-icon> {{ formatDate(ev.date_end) }}</span>
