@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketMada - Choisir vos places</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-cream: #FAF7F2;
+            --bg-dark: #1a1a1a;
+            --accent-coral: #FF6B4A;
+            --accent-yellow: #FECA57;
+            --accent-mint: #00D9A5;
+            --accent-blue: #4A90FF;
+            --accent-purple: #9B59B6;
+            --text-dark: #1a1a1a;
+            --text-light: #666;
+            --border-dark: #1a1a1a;
+            --shadow-brutal: 6px 6px 0px #1a1a1a;
+            --shadow-brutal-sm: 4px 4px 0px #1a1a1a;
+            --shadow-brutal-lg: 10px 10px 0px #1a1a1a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; }
+
+        /* ── Navbar ── */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 16px 40px; background: var(--bg-cream); border-bottom: 3px solid var(--border-dark); }
+        .navbar-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-dark); }
+        .logo-box { width: 45px; height: 45px; background: var(--accent-coral); border: 3px solid var(--border-dark); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; transform: rotate(-3deg); }
+        .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; }
+        .logo-text span { color: var(--accent-coral); }
+        .nav-back { display: flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text-dark); text-decoration: none; padding: 10px 20px; border: 3px solid var(--border-dark); background: white; box-shadow: var(--shadow-brutal-sm); transition: all 0.15s ease; }
+        .nav-back:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #1a1a1a; }
+        .nav-cta { display: flex; gap: 12px; align-items: center; }
+        .lang-toggle { width: 42px; height: 42px; background: white; border: 3px solid var(--border-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; box-shadow: 3px 3px 0px #1a1a1a; transition: all 0.2s; }
+        .lang-toggle:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px #1a1a1a; }
+
+        /* ── Event Header ── */
+        .event-header { margin-top: 80px; padding: 30px 40px 20px; background: white; border-bottom: 3px solid var(--border-dark); }
+        .event-header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 30px; }
+        .event-poster { width: 80px; height: 80px; border-radius: 12px; border: 3px solid var(--border-dark); object-fit: cover; box-shadow: var(--shadow-brutal-sm); }
+        .event-meta { flex: 1; }
+        .event-meta h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+        .event-meta-row { display: flex; align-items: center; gap: 20px; color: var(--text-light); font-size: 0.95rem; }
+        .event-meta-row .v-icon { margin-right: 4px; }
+        .event-meta-badge { display: inline-block; background: var(--accent-mint); border: 2px solid var(--border-dark); padding: 4px 14px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; }
+
+        /* ── Main Layout ── */
+        .main-content { max-width: 1400px; margin: 0 auto; padding: 30px 40px 60px; display: grid; grid-template-columns: 1fr 420px; gap: 30px; min-height: calc(100vh - 200px); }
+
+        /* ── Seat Map Panel ── */
+        .seatmap-panel { background: white; border: 3px solid var(--border-dark); box-shadow: var(--shadow-brutal); overflow: hidden; }
+        .seatmap-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 3px solid var(--border-dark); background: var(--bg-cream); }
+        .seatmap-toolbar h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+        .seatmap-zoom { display: flex; gap: 8px; }
+        .zoom-btn { width: 36px; height: 36px; background: white; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; transition: all 0.15s; }
+        .zoom-btn:hover { background: var(--accent-yellow); transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #1a1a1a; }
+
+        .seatmap-container { position: relative; padding: 20px; min-height: 450px; overflow: hidden; cursor: grab; background: #f8f6f1; }
+        .seatmap-container:active { cursor: grabbing; }
+        .seatmap-svg-wrapper { transform-origin: center center; transition: transform 0.2s ease; }
+
+        /* SVG seat map styles */
+        .seatmap-svg { width: 100%; height: auto; }
+        .seatmap-svg .zone-group { cursor: pointer; }
+        .seatmap-svg .zone-bg { transition: all 0.2s ease; stroke: var(--border-dark); stroke-width: 2; }
+        .seatmap-svg .zone-group:hover .zone-bg { filter: brightness(1.15); stroke-width: 3; }
+        .seatmap-svg .zone-group.active .zone-bg { stroke-width: 4; stroke: var(--accent-coral); filter: brightness(1.1); }
+        .seatmap-svg .zone-label { font-family: 'Syne', sans-serif; font-weight: 700; pointer-events: none; }
+        .seatmap-svg .zone-price { font-family: 'DM Sans', sans-serif; font-weight: 600; pointer-events: none; }
+        .seatmap-svg .zone-count { font-family: 'DM Sans', sans-serif; font-weight: 500; pointer-events: none; opacity: 0.8; }
+        .seatmap-svg .stage-rect { fill: var(--bg-dark); }
+        .seatmap-svg .stage-text { fill: white; font-family: 'Syne', sans-serif; font-weight: 800; }
+
+        /* Zone Legend */
+        .seatmap-legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 16px 24px; border-top: 3px solid var(--border-dark); background: var(--bg-cream); }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 6px 12px; border: 2px solid transparent; border-radius: 4px; transition: all 0.15s; }
+        .legend-item:hover { border-color: var(--border-dark); background: white; }
+        .legend-item.active { border-color: var(--border-dark); background: white; box-shadow: var(--shadow-brutal-sm); }
+        .legend-dot { width: 16px; height: 16px; border: 2px solid var(--border-dark); }
+        .legend-avail { color: var(--text-light); font-weight: 400; font-size: 0.8rem; }
+
+        /* ── Listings Sidebar ── */
+        .listings-panel { display: flex; flex-direction: column; max-height: calc(100vh - 200px); position: sticky; top: 110px; }
+        .listings-header { background: var(--bg-dark); color: white; padding: 20px 24px; border: 3px solid var(--border-dark); border-bottom: none; }
+        .listings-header h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; margin-bottom: 4px; }
+        .listings-header p { font-size: 0.85rem; opacity: 0.7; }
+        .listings-filter { display: flex; gap: 8px; padding: 14px 20px; background: white; border: 3px solid var(--border-dark); border-top: none; border-bottom: none; }
+        .filter-chip { padding: 6px 14px; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--border-dark); background: white; cursor: pointer; transition: all 0.15s; }
+        .filter-chip:hover { background: var(--accent-yellow); }
+        .filter-chip.active { background: var(--accent-coral); color: white; box-shadow: 3px 3px 0px #1a1a1a; }
+        .listings-sort { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: var(--bg-cream); border: 3px solid var(--border-dark); border-top: none; font-size: 0.8rem; color: var(--text-light); }
+        .sort-select { font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 600; border: 2px solid var(--border-dark); padding: 4px 8px; background: white; cursor: pointer; }
+
+        .listings-scroll { flex: 1; overflow-y: auto; border: 3px solid var(--border-dark); border-top: none; background: white; }
+        .listings-scroll::-webkit-scrollbar { width: 8px; }
+        .listings-scroll::-webkit-scrollbar-track { background: var(--bg-cream); }
+        .listings-scroll::-webkit-scrollbar-thumb { background: #ccc; border: 1px solid var(--border-dark); }
+
+        .listing-card { padding: 18px 20px; border-bottom: 2px solid #eee; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 16px; }
+        .listing-card:hover { background: #fef9f0; transform: translateX(4px); }
+        .listing-card.highlighted { background: #fff3e0; border-left: 4px solid var(--accent-coral); }
+        .listing-zone-dot { width: 14px; height: 14px; border: 2px solid var(--border-dark); flex-shrink: 0; }
+        .listing-info { flex: 1; min-width: 0; }
+        .listing-zone-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
+        .listing-detail { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 10px; }
+        .listing-badges { display: flex; gap: 6px; margin-top: 6px; }
+        .listing-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border: 1.5px solid; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-urgency { background: #fff0f0; border-color: #e74c3c; color: #e74c3c; }
+        .badge-quality { background: #f0f8ff; border-color: var(--accent-blue); color: var(--accent-blue); }
+        .badge-standing { background: #f5f0ff; border-color: var(--accent-purple); color: var(--accent-purple); }
+        .listing-price-col { text-align: right; flex-shrink: 0; }
+        .listing-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.15rem; }
+        .listing-price-unit { font-size: 0.7rem; color: var(--text-light); }
+        .listing-per { font-size: 0.7rem; color: var(--text-light); }
+
+        .listings-empty { padding: 40px 20px; text-align: center; color: var(--text-light); }
+        .listings-empty .v-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.3; }
+
+        /* ── Quantity Popup ── */
+        .qty-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,26,26,0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .qty-overlay.active { opacity: 1; pointer-events: all; }
+        .qty-card { background: white; border: 3px solid var(--border-dark); box-shadow: var(--shadow-brutal-lg); padding: 40px; max-width: 480px; width: 90%; position: relative; }
+        .qty-close { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; background: white; border: 3px solid var(--border-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; transition: all 0.15s; }
+        .qty-close:hover { background: var(--accent-coral); color: white; }
+        .qty-card h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; margin-bottom: 6px; }
+        .qty-zone-info { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; color: var(--text-light); }
+        .qty-zone-dot { width: 18px; height: 18px; border: 2px solid var(--border-dark); }
+        .qty-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 16px; }
+        .qty-selector { display: flex; align-items: center; gap: 0; margin-bottom: 24px; }
+        .qty-btn { width: 52px; height: 52px; background: white; border: 3px solid var(--border-dark); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .qty-btn:hover { background: var(--accent-yellow); }
+        .qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .qty-btn:disabled:hover { background: white; }
+        .qty-display { width: 80px; height: 52px; border-top: 3px solid var(--border-dark); border-bottom: 3px solid var(--border-dark); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; background: var(--bg-cream); }
+        .qty-summary { background: var(--bg-cream); border: 3px solid var(--border-dark); padding: 20px; margin-bottom: 24px; }
+        .qty-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        .qty-line:last-child { margin-bottom: 0; padding-top: 10px; border-top: 2px dashed var(--border-dark); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; }
+        .qty-confirm { width: 100%; padding: 18px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; background: var(--accent-coral); color: white; border: 3px solid var(--border-dark); box-shadow: var(--shadow-brutal); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .qty-confirm:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0px #1a1a1a; }
+
+        /* ── Responsive ── */
+        @media (max-width: 1100px) {
+            .main-content { grid-template-columns: 1fr; }
+            .listings-panel { position: static; max-height: none; }
+        }
+        @media (max-width: 768px) {
+            .event-header { padding: 20px; }
+            .event-header-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .event-meta h1 { font-size: 1.3rem; }
+            .main-content { padding: 20px; }
+            .navbar { padding: 12px 20px; }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/User/ticketmada-landing.html" class="logo">
+                <div class="logo-box">🎫</div>
+                <span class="logo-text">Ticket<span>Mada</span></span>
+            </a>
+            <a href="/User/ticketmada-landing.html" class="nav-back">
+                <v-icon size="small">mdi-arrow-left</v-icon>
+                {{ lang === 'fr' ? 'Retour aux événements' : 'Back to events' }}
+            </a>
+            <div class="nav-cta">
+                <button class="lang-toggle" @click="toggleLang">{{ lang === 'fr' ? '🇬🇧' : '🇫🇷' }}</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Event Header Bar -->
+    <div class="event-header">
+        <div class="event-header-inner">
+            <img :src="event.image_url || 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=100'" alt="" class="event-poster">
+            <div class="event-meta">
+                <h1>{{ event.emoji }} {{ event.name }}</h1>
+                <div class="event-meta-row">
+                    <span><v-icon size="x-small">mdi-calendar</v-icon> {{ formatDate(event.date_start) }}</span>
+                    <span><v-icon size="x-small">mdi-map-marker</v-icon> {{ event.venue }}</span>
+                    <span><v-icon size="x-small">mdi-account-group</v-icon> {{ event.capacity ? event.capacity.toLocaleString() : '—' }} {{ lang === 'fr' ? 'places' : 'seats' }}</span>
+                    <span class="event-meta-badge" v-if="event.status === 'active'">{{ lang === 'fr' ? 'En vente' : 'On sale' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main: Seat Map + Listings -->
+    <div class="main-content">
+        <!-- Left: Interactive Seat Map -->
+        <div class="seatmap-panel">
+            <div class="seatmap-toolbar">
+                <h3>{{ lang === 'fr' ? '🗺️ Plan de la salle' : '🗺️ Venue Map' }}</h3>
+                <div class="seatmap-zoom">
+                    <button class="zoom-btn" @click="zoomOut" title="Zoom out">−</button>
+                    <button class="zoom-btn" @click="zoomReset" title="Reset">⟲</button>
+                    <button class="zoom-btn" @click="zoomIn" title="Zoom in">+</button>
+                </div>
+            </div>
+            <div class="seatmap-container" ref="seatmapContainer">
+                <div class="seatmap-svg-wrapper" :style="{ transform: `scale(${zoom}) translate(${panX}px, ${panY}px)` }">
+                    <svg :viewBox="svgViewBox" class="seatmap-svg" xmlns="http://www.w3.org/2000/svg" ref="seatmapSvg">
+                        <!-- Stage -->
+                        <rect :x="stageX" :y="stageY" :width="stageW" :height="stageH" rx="12" class="stage-rect"/>
+                        <text :x="stageX + stageW/2" :y="stageY + stageH/2 + 6" text-anchor="middle" class="stage-text" font-size="18">STAGE</text>
+
+                        <!-- Zones -->
+                        <g v-for="zone in mapZones" :key="zone.id"
+                           class="zone-group"
+                           :class="{ active: selectedZone === zone.id }"
+                           @click="selectZone(zone.id)"
+                           @mouseenter="hoverZone = zone.id"
+                           @mouseleave="hoverZone = null">
+                            <rect :x="zone.x" :y="zone.y" :width="zone.w" :height="zone.h"
+                                  :rx="zone.rx || 6" class="zone-bg" :fill="zone.color" fill-opacity="0.75"/>
+                            <!-- Seat dots pattern -->
+                            <g v-for="dot in zone.dots" :key="dot.cx + '-' + dot.cy">
+                                <circle :cx="dot.cx" :cy="dot.cy" r="4" fill="white" opacity="0.5"/>
+                            </g>
+                            <text :x="zone.x + zone.w/2" :y="zone.y + zone.h/2 - 8" text-anchor="middle"
+                                  class="zone-label" fill="white" :font-size="zone.labelSize || 16">{{ zone.name }}</text>
+                            <text :x="zone.x + zone.w/2" :y="zone.y + zone.h/2 + 10" text-anchor="middle"
+                                  class="zone-price" fill="white" font-size="13">{{ formatPrice(zone.price) }} Ar</text>
+                            <text :x="zone.x + zone.w/2" :y="zone.y + zone.h/2 + 26" text-anchor="middle"
+                                  class="zone-count" fill="white" font-size="11">{{ zone.available }} {{ lang === 'fr' ? 'dispo' : 'avail.' }}</text>
+                        </g>
+
+                        <!-- Hover tooltip -->
+                        <g v-if="hoverZone && getZone(hoverZone)" :transform="`translate(${getZone(hoverZone).x + getZone(hoverZone).w/2 - 70}, ${getZone(hoverZone).y - 45})`">
+                            <rect x="0" y="0" width="140" height="36" rx="4" fill="var(--bg-dark)" opacity="0.92"/>
+                            <text x="70" y="15" text-anchor="middle" fill="white" font-size="11" font-family="Syne" font-weight="700">{{ getZone(hoverZone).name }}</text>
+                            <text x="70" y="29" text-anchor="middle" fill="var(--accent-yellow)" font-size="11" font-family="DM Sans" font-weight="600">{{ lang === 'fr' ? 'Cliquez pour sélectionner' : 'Click to select' }}</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            <div class="seatmap-legend">
+                <div class="legend-item" v-for="zone in mapZones" :key="'leg-'+zone.id"
+                     :class="{ active: selectedZone === zone.id }"
+                     @click="selectZone(zone.id === selectedZone ? null : zone.id)">
+                    <div class="legend-dot" :style="{ background: zone.color }"></div>
+                    {{ zone.name }} — {{ formatPrice(zone.price) }} Ar
+                    <span class="legend-avail">({{ zone.available }})</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Ticket Listings Sidebar -->
+        <div class="listings-panel">
+            <div class="listings-header">
+                <h3>{{ lang === 'fr' ? '🎫 Billets disponibles' : '🎫 Available Tickets' }}</h3>
+                <p>{{ totalAvailable }} {{ lang === 'fr' ? 'billets restants' : 'tickets remaining' }}</p>
+            </div>
+
+            <div class="listings-filter">
+                <button class="filter-chip" :class="{ active: selectedZone === null }" @click="selectedZone = null">
+                    {{ lang === 'fr' ? 'Tous' : 'All' }}
+                </button>
+                <button class="filter-chip" v-for="zone in mapZones" :key="'f-'+zone.id"
+                        :class="{ active: selectedZone === zone.id }"
+                        @click="selectZone(zone.id)">
+                    {{ zone.shortName || zone.name }}
+                </button>
+            </div>
+
+            <div class="listings-sort">
+                <span>{{ filteredListings.length }} {{ lang === 'fr' ? 'résultats' : 'results' }}</span>
+                <select class="sort-select" v-model="sortBy">
+                    <option value="price-asc">{{ lang === 'fr' ? 'Prix ↑' : 'Price ↑' }}</option>
+                    <option value="price-desc">{{ lang === 'fr' ? 'Prix ↓' : 'Price ↓' }}</option>
+                    <option value="zone">{{ lang === 'fr' ? 'Par zone' : 'By zone' }}</option>
+                </select>
+            </div>
+
+            <div class="listings-scroll">
+                <div v-if="filteredListings.length === 0" class="listings-empty">
+                    <v-icon>mdi-ticket-outline</v-icon>
+                    <p>{{ lang === 'fr' ? 'Aucun billet dans cette section' : 'No tickets in this section' }}</p>
+                </div>
+                <div class="listing-card" v-for="listing in filteredListings" :key="listing.id"
+                     :class="{ highlighted: selectedZone === listing.zoneId }"
+                     @click="openQuantity(listing)">
+                    <div class="listing-zone-dot" :style="{ background: listing.color }"></div>
+                    <div class="listing-info">
+                        <div class="listing-zone-name">{{ listing.zoneName }}</div>
+                        <div class="listing-detail">
+                            <span><v-icon size="x-small">mdi-seat</v-icon> {{ listing.seatInfo }}</span>
+                            <span><v-icon size="x-small">mdi-eye</v-icon> {{ listing.viewQuality }}</span>
+                        </div>
+                        <div class="listing-badges">
+                            <span class="listing-badge badge-urgency" v-if="listing.available <= 10">
+                                {{ listing.available <= 3 ? (lang === 'fr' ? 'Dernières places !' : 'Last tickets!') : listing.available + (lang === 'fr' ? ' restants' : ' left') }}
+                            </span>
+                            <span class="listing-badge badge-standing" v-if="listing.standing">{{ lang === 'fr' ? 'Debout' : 'Standing' }}</span>
+                            <span class="listing-badge badge-quality" v-if="listing.qualityBadge">{{ listing.qualityBadge }}</span>
+                        </div>
+                    </div>
+                    <div class="listing-price-col">
+                        <div class="listing-price">{{ formatPrice(listing.price) }}</div>
+                        <div class="listing-price-unit">Ar</div>
+                        <div class="listing-per">/ {{ lang === 'fr' ? 'place' : 'ticket' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quantity Selector Popup -->
+    <div class="qty-overlay" :class="{ active: showQty }" @click.self="showQty = false">
+        <div class="qty-card" v-if="qtyListing">
+            <div class="qty-close" @click="showQty = false">✕</div>
+            <h3>{{ lang === 'fr' ? 'Combien de billets ?' : 'How many tickets?' }}</h3>
+            <div class="qty-zone-info">
+                <div class="qty-zone-dot" :style="{ background: qtyListing.color }"></div>
+                <span>{{ qtyListing.zoneName }} — {{ qtyListing.seatInfo }}</span>
+            </div>
+            <div class="qty-label">{{ lang === 'fr' ? 'Sélectionnez la quantité' : 'Select quantity' }}</div>
+            <div class="qty-selector">
+                <button class="qty-btn" @click="qty = Math.max(1, qty - 1)" :disabled="qty <= 1">−</button>
+                <div class="qty-display">{{ qty }}</div>
+                <button class="qty-btn" @click="qty = Math.min(qtyListing.available, Math.min(10, qty + 1))" :disabled="qty >= Math.min(10, qtyListing.available)">+</button>
+            </div>
+            <div class="qty-summary">
+                <div class="qty-line">
+                    <span>{{ qty }}× {{ qtyListing.zoneName }}</span>
+                    <span>{{ formatPrice(qtyListing.price * qty) }} Ar</span>
+                </div>
+                <div class="qty-line">
+                    <span>{{ lang === 'fr' ? 'Frais de service' : 'Service fee' }}</span>
+                    <span>{{ formatPrice(Math.round(qtyListing.price * qty * 0.03)) }} Ar</span>
+                </div>
+                <div class="qty-line">
+                    <span>{{ lang === 'fr' ? 'Total' : 'Total' }}</span>
+                    <span>{{ formatPrice(Math.round(qtyListing.price * qty * 1.03)) }} Ar</span>
+                </div>
+            </div>
+            <button class="qty-confirm" @click="confirmPurchase">
+                <v-icon>mdi-cart</v-icon>
+                {{ lang === 'fr' ? 'Continuer' : 'Continue' }} — {{ formatPrice(Math.round(qtyListing.price * qty * 1.03)) }} Ar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/api-client.js"></script>
+<script src="../js/seatmap-engine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+<script>
+const { createApp } = Vue;
+
+const app = createApp({
+    data() {
+        return {
+            lang: localStorage.getItem('ticketmada-lang') || 'fr',
+            event: {},
+            eventId: null,
+            // Map state
+            zoom: 1,
+            panX: 0,
+            panY: 0,
+            selectedZone: null,
+            hoverZone: null,
+            // Listing state
+            sortBy: 'price-asc',
+            // Quantity popup
+            showQty: false,
+            qtyListing: null,
+            qty: 2,
+            // Generated map data
+            venueTemplate: 'arena',
+            mapZones: [],
+            listings: []
+        };
+    },
+    computed: {
+        svgViewBox() { return '0 0 700 500'; },
+        stageX() { return 200; },
+        stageY() { return 10; },
+        stageW() { return 300; },
+        stageH() { return 50; },
+        totalAvailable() { return this.mapZones.reduce((s, z) => s + z.available, 0); },
+        filteredListings() {
+            let list = this.selectedZone ? this.listings.filter(l => l.zoneId === this.selectedZone) : [...this.listings];
+            if (this.sortBy === 'price-asc') list.sort((a, b) => a.price - b.price);
+            else if (this.sortBy === 'price-desc') list.sort((a, b) => b.price - a.price);
+            else if (this.sortBy === 'zone') list.sort((a, b) => a.zoneOrder - b.zoneOrder);
+            return list;
+        }
+    },
+    methods: {
+        toggleLang() {
+            this.lang = this.lang === 'fr' ? 'en' : 'fr';
+            localStorage.setItem('ticketmada-lang', this.lang);
+        },
+        formatDate(d) {
+            if (!d) return '—';
+            const dt = new Date(d);
+            return dt.toLocaleDateString(this.lang === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+        },
+        formatPrice(p) {
+            return p ? p.toLocaleString('fr-FR') : '0';
+        },
+        selectZone(id) {
+            this.selectedZone = this.selectedZone === id ? null : id;
+        },
+        getZone(id) {
+            return this.mapZones.find(z => z.id === id);
+        },
+        zoomIn() { this.zoom = Math.min(2.5, this.zoom + 0.2); },
+        zoomOut() { this.zoom = Math.max(0.5, this.zoom - 0.2); },
+        zoomReset() { this.zoom = 1; this.panX = 0; this.panY = 0; },
+        openQuantity(listing) {
+            this.qtyListing = listing;
+            this.qty = 2;
+            this.showQty = true;
+        },
+        confirmPurchase() {
+            const total = Math.round(this.qtyListing.price * this.qty * 1.03);
+            // For now, show a confirmation and close
+            alert((this.lang === 'fr'
+                ? `✅ ${this.qty} billet(s) ${this.qtyListing.zoneName} réservé(s) !\nTotal: ${this.formatPrice(total)} Ar\n\n(Module de paiement à venir)`
+                : `✅ ${this.qty} ${this.qtyListing.zoneName} ticket(s) reserved!\nTotal: ${this.formatPrice(total)} Ar\n\n(Payment module coming soon)`));
+            this.showQty = false;
+        },
+
+        // Build the interactive venue map from the SeatmapEngine
+        buildVenueMap() {
+            const zones = window.SeatmapEngine?.defaultZones || [];
+            // Determine template based on event or default
+            const capacity = this.event.capacity || 5000;
+            let tpl = 'arena';
+            if (capacity <= 200) tpl = 'cabaret';
+            else if (capacity <= 500) tpl = 'conference';
+            else if (capacity <= 1000) tpl = 'theater';
+            else if (capacity <= 5000) tpl = 'arena';
+            else tpl = 'stadium';
+
+            this.venueTemplate = tpl;
+            const seatData = window.SeatmapEngine?.generate(tpl);
+
+            // Create interactive zone blocks for the SVG
+            // We'll lay out zones as large clickable rectangles
+            const svgW = 700, svgH = 500;
+            const stageBottom = 70;
+
+            // Zone layout config per template type
+            const layouts = this.getZoneLayout(tpl, svgW, svgH, stageBottom, capacity);
+            this.mapZones = layouts;
+
+            // Generate listings from zones
+            this.listings = [];
+            const viewQualities = {
+                vip: { fr: 'Vue parfaite', en: 'Perfect view' },
+                premium: { fr: 'Très bonne vue', en: 'Great view' },
+                standard: { fr: 'Bonne vue', en: 'Good view' },
+                eco: { fr: 'Vue correcte', en: 'Fair view' },
+                pit: { fr: 'Vue immersive', en: 'Immersive view' }
+            };
+            const qualityBadges = { vip: 'VIP', premium: 'Premium', pit: 'Fosse' };
+
+            layouts.forEach((zone, idx) => {
+                // Create multiple listing entries per zone to simulate ticket groupings
+                const groupCount = Math.min(4, Math.max(1, Math.ceil(zone.available / 50)));
+                for (let g = 0; g < groupCount; g++) {
+                    const rowLetter = String.fromCharCode(65 + g * 3 + Math.floor(Math.random() * 3));
+                    const seatStart = Math.floor(Math.random() * 20) + 1;
+                    const groupAvail = g === groupCount - 1
+                        ? zone.available - Math.floor(zone.available / groupCount) * (groupCount - 1)
+                        : Math.floor(zone.available / groupCount);
+
+                    this.listings.push({
+                        id: zone.id + '-' + g,
+                        zoneId: zone.id,
+                        zoneName: zone.name,
+                        color: zone.color,
+                        seatInfo: zone.id === 'pit'
+                            ? (this.lang === 'fr' ? 'Accès fosse' : 'Pit access')
+                            : (this.lang === 'fr' ? `Rang. ${rowLetter}, Places ${seatStart}-${seatStart + 8}` : `Row ${rowLetter}, Seats ${seatStart}-${seatStart + 8}`),
+                        viewQuality: viewQualities[zone.id]?.[this.lang] || viewQualities.standard[this.lang],
+                        price: zone.price,
+                        available: groupAvail,
+                        standing: zone.id === 'pit',
+                        qualityBadge: qualityBadges[zone.id] || null,
+                        zoneOrder: idx
+                    });
+                }
+            });
+        },
+
+        getZoneLayout(tpl, svgW, svgH, stageBottom, capacity) {
+            const zones = window.SeatmapEngine?.defaultZones || [
+                { id: 'vip', name: 'VIP', color: '#FF6B4A', price: 150000 },
+                { id: 'premium', name: 'Premium', color: '#FECA57', price: 80000 },
+                { id: 'standard', name: 'Standard', color: '#4A90FF', price: 40000 },
+                { id: 'eco', name: 'Économique', color: '#00D9A5', price: 20000 },
+                { id: 'pit', name: 'Fosse/Debout', color: '#9B59B6', price: 60000 }
+            ];
+
+            // Calculate availability per zone as fractions of remaining capacity
+            const ticketsSold = this.event.tickets_sold || 0;
+            const remaining = Math.max(0, capacity - ticketsSold);
+            const zoneDistribution = { vip: 0.08, premium: 0.20, standard: 0.35, eco: 0.30, pit: 0.07 };
+
+            const generateDots = (x, y, w, h) => {
+                const dots = [];
+                const cols = Math.floor(w / 22);
+                const rows = Math.floor(h / 20);
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        dots.push({ cx: x + 14 + c * 22, cy: y + 14 + r * 20 });
+                    }
+                }
+                return dots;
+            };
+
+            // Common layout: stage at top, zones stacked below
+            const pad = 20;
+            const zoneGap = 12;
+            const usableW = svgW - pad * 2;
+            const usableH = svgH - stageBottom - pad - 10;
+            const zoneH = (usableH - zoneGap * 4) / 5;
+
+            // For arena/stadium: pit in front, then vip, premium, standard, eco
+            const hasPit = ['arena', 'stadium', 'festival'].includes(tpl);
+            const zoneOrder = hasPit
+                ? ['pit', 'vip', 'premium', 'standard', 'eco']
+                : ['vip', 'premium', 'standard', 'eco'];
+
+            const result = [];
+            zoneOrder.forEach((zid, idx) => {
+                const z = zones.find(z => z.id === zid);
+                if (!z) return;
+                const avail = Math.round(remaining * (zoneDistribution[zid] || 0.2));
+                const yPos = stageBottom + idx * (zoneH + zoneGap);
+                const narrowing = idx * 12; // progressive narrowing for realism
+                const zoneRect = {
+                    ...z,
+                    x: pad + narrowing,
+                    y: yPos,
+                    w: usableW - narrowing * 2,
+                    h: zoneH,
+                    rx: 8,
+                    available: avail,
+                    shortName: z.id === 'pit' ? (this.lang === 'fr' ? 'Fosse' : 'Pit') : z.name,
+                    labelSize: z.id === 'pit' ? 14 : 16,
+                    dots: generateDots(pad + narrowing, yPos, usableW - narrowing * 2, zoneH)
+                };
+                result.push(zoneRect);
+            });
+
+            return result;
+        }
+    },
+    async mounted() {
+        document.documentElement.lang = this.lang;
+        // Get event ID from URL params
+        const params = new URLSearchParams(window.location.search);
+        this.eventId = params.get('id') || 1;
+
+        // Try to load event from API
+        try {
+            const result = await window.api.get('/events/' + this.eventId);
+            if (result.event) {
+                this.event = result.event;
+            }
+        } catch (e) {
+            console.warn('API not available, using demo event');
+        }
+
+        // Fallback demo event if API failed
+        if (!this.event.name) {
+            this.event = {
+                id: 1,
+                name: 'Dama Live - Tournée Nationale 2026',
+                emoji: '🎤',
+                date_start: '2026-04-15',
+                venue: 'Antananarivo',
+                capacity: 15000,
+                tickets_sold: 12500,
+                image_url: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400',
+                status: 'active',
+                category: 'concerts'
+            };
+        }
+
+        document.title = 'TicketMada - ' + this.event.name;
+        this.buildVenueMap();
+
+        // Keyboard: Escape closes popup
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') this.showQty = false; });
+    }
+});
+
+app.use(Vuetify.createVuetify());
+app.mount('#app');
+</script>
+</body>
+</html>
