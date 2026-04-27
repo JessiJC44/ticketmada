@@ -169,6 +169,27 @@
         .view-seat-tag { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-light); }
         .view-seat-tag .v-icon { color: var(--accent-mint); }
 
+        
+        /* Price Alert Popup */
+        .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,26,26,0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .alert-overlay.active { opacity: 1; pointer-events: all; }
+        .alert-card { background: white; border: 3px solid var(--border-dark); box-shadow: var(--shadow-brutal-lg); padding: 36px; max-width: 440px; width: 90%; position: relative; }
+        .alert-close { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; background: white; border: 3px solid var(--border-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: 'Syne'; font-weight: 700; font-size: 1rem; }
+        .alert-close:hover { background: var(--accent-coral); color: white; }
+        .alert-card h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; margin-bottom: 8px; }
+        .alert-card p { font-size: 0.9rem; color: var(--text-light); margin-bottom: 20px; line-height: 1.5; }
+        .alert-input { width: 100%; padding: 14px 16px; border: 3px solid var(--border-dark); font-family: 'DM Sans'; font-size: 1rem; margin-bottom: 12px; }
+        .alert-input:focus { outline: none; box-shadow: 4px 4px 0px var(--accent-coral); }
+        .alert-zones { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .alert-zone-chip { padding: 6px 14px; border: 2px solid var(--border-dark); font-family: 'Syne'; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
+        .alert-zone-chip.selected { color: white; box-shadow: 3px 3px 0px #1a1a1a; }
+        .alert-submit { width: 100%; padding: 16px; font-family: 'Syne'; font-weight: 700; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; background: var(--accent-coral); color: white; border: 3px solid var(--border-dark); box-shadow: var(--shadow-brutal); cursor: pointer; transition: all 0.15s; }
+        .alert-submit:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0px #1a1a1a; }
+        .alert-success { text-align: center; padding: 20px 0; }
+        .alert-success-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .alert-btn-inline { padding: 8px 16px; font-family: 'Syne'; font-weight: 600; font-size: 0.75rem; background: white; border: 2px solid var(--border-dark); cursor: pointer; transition: all 0.15s; margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; }
+        .alert-btn-inline:hover { background: var(--accent-yellow); transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #1a1a1a; }
+
         /* ── Responsive ── */
         @media (max-width: 1100px) {
             .main-content { grid-template-columns: 1fr; }
@@ -341,6 +362,7 @@
             <div class="listings-header">
                 <h3>{{ lang === 'fr' ? '🎫 Billets disponibles' : '🎫 Available Tickets' }}</h3>
                 <p>{{ totalAvailable }} {{ lang === 'fr' ? 'billets restants' : 'tickets remaining' }}</p>
+                <button class="alert-btn-inline" @click="showPriceAlert = true"><v-icon size="x-small">mdi-bell-outline</v-icon> {{ lang === 'fr' ? 'Alerte prix' : 'Price alert' }}</button>
             </div>
 
             <div class="listings-filter">
@@ -431,6 +453,36 @@
             </button>
         </div>
     </div>
+
+    <!-- Price Alert Popup -->
+    <div class="alert-overlay" :class="{ active: showPriceAlert }" @click.self="showPriceAlert = false">
+        <div class="alert-card" v-if="!alertSent">
+            <div class="alert-close" @click="showPriceAlert = false">✕</div>
+            <h3>🔔 {{ lang === 'fr' ? 'Alerte prix' : 'Price Alert' }}</h3>
+            <p>{{ lang === 'fr' ? 'Recevez une notification quand le prix baisse pour cet événement.' : 'Get notified when the price drops for this event.' }}</p>
+            <input class="alert-input" type="email" v-model="alertEmail" :placeholder="lang === 'fr' ? 'Votre adresse email' : 'Your email address'">
+            <div style="font-family:Syne;font-weight:700;font-size:0.8rem;margin-bottom:10px;">{{ lang === 'fr' ? 'Zones à surveiller :' : 'Zones to watch:' }}</div>
+            <div class="alert-zones">
+                <div class="alert-zone-chip" v-for="zone in mapZones" :key="'alert-'+zone.id"
+                     :class="{ selected: alertZones.includes(zone.id) }"
+                     :style="alertZones.includes(zone.id) ? 'background:' + zone.color + ';border-color:' + zone.color : ''"
+                     @click="toggleAlertZone(zone.id)">
+                    {{ zone.name }}
+                </div>
+            </div>
+            <button class="alert-submit" @click="submitAlert">
+                {{ lang === 'fr' ? 'Activer l\'alerte' : 'Enable alert' }}
+            </button>
+        </div>
+        <div class="alert-card" v-else>
+            <div class="alert-close" @click="showPriceAlert = false; alertSent = false;">✕</div>
+            <div class="alert-success">
+                <div class="alert-success-icon">✅</div>
+                <h3>{{ lang === 'fr' ? 'Alerte activée !' : 'Alert enabled!' }}</h3>
+                <p>{{ lang === 'fr' ? 'Vous recevrez un email à ' + alertEmail + ' dès qu\'un prix baisse.' : 'You will receive an email at ' + alertEmail + ' when a price drops.' }}</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="../js/api-client.js"></script>
@@ -461,6 +513,10 @@ const app = createApp({
             // Generated map data
             viewersCount: 0,
             recentSales: 0,
+            showPriceAlert: false,
+            alertEmail: '',
+            alertZones: [],
+            alertSent: false,
             venueTemplate: 'arena',
             mapZones: [],
             listings: []
@@ -533,6 +589,16 @@ const app = createApp({
         },
         getZone(id) {
             return this.mapZones.find(z => z.id === id);
+        },
+        toggleAlertZone(id) {
+            const idx = this.alertZones.indexOf(id);
+            if (idx >= 0) this.alertZones.splice(idx, 1);
+            else this.alertZones.push(id);
+        },
+        submitAlert() {
+            if (!this.alertEmail || !this.alertEmail.includes('@')) return;
+            if (!this.alertZones.length) this.alertZones = this.mapZones.map(z => z.id);
+            this.alertSent = true;
         },
         zoomIn() { this.zoom = Math.min(2.5, this.zoom + 0.2); },
         zoomOut() { this.zoom = Math.max(0.5, this.zoom - 0.2); },
@@ -725,6 +791,7 @@ const app = createApp({
             const seatsResult = await window.api.get('/events/' + this.eventId + '/seats');
             if (seatsResult.zones) { this.apiZones = seatsResult.zones; }
         } catch(e) { console.warn('Seats API not available, using calculated zones'); }
+        this.alertEmail = window.api?.getUser()?.email || '';
         this.buildVenueMap();
 
         
