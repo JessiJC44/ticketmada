@@ -339,6 +339,20 @@ async function handleEvents(req, res, parts) {
     const id = parts[2] && !isNaN(parts[2]) ? parseInt(parts[2]) : null;
     const action = id ? parts[3] : parts[2];
 
+    // Search / autocomplete endpoint
+    if (action === 'search' && req.method === 'GET') {
+        const url = new URL(req.url, 'http://localhost');
+        const q = url.searchParams.get('q') || '';
+        const limit = parseInt(url.searchParams.get('limit') || '10');
+        if (!q || q.length < 2) return sendError(res, 'Query too short (min 2 chars)');
+        const pattern = '%' + q + '%';
+        const events = db.prepare("SELECT e.*, u.name as organizer_name FROM events e LEFT JOIN users u ON e.organizer_id = u.id WHERE (e.name LIKE ? OR e.venue LIKE ? OR e.category LIKE ? OR e.description LIKE ?) AND e.status IN ('active','pending') ORDER BY e.tickets_sold DESC LIMIT ?").all(pattern, pattern, pattern, pattern, limit);
+        const categories = db.prepare("SELECT category as name, COUNT(*) as count FROM events WHERE (category LIKE ? OR name LIKE ?) AND status IN ('active','pending') GROUP BY category").all(pattern, pattern);
+        const icons = { concerts: '🎵', festivals: '🎪', sports: '⚽', theatre: '🎭' };
+        categories.forEach(c => c.icon = icons[c.name] || '🎫');
+        return sendJSON(res, { events, categories, query: q });
+    }
+
     if (action === 'featured' && req.method === 'GET') {
         const limit = parseInt(new URL(req.url, 'http://localhost').searchParams.get('limit') || '8');
         const events = db.prepare('SELECT e.*, u.name as organizer_name FROM events e LEFT JOIN users u ON e.organizer_id = u.id WHERE e.status IN ("active","pending") ORDER BY e.tickets_sold DESC LIMIT ?').all(limit);
