@@ -202,6 +202,99 @@
             .main-content { padding: 20px; }
             .navbar { padding: 12px 20px; }
         }
+    
+    /* Related Events */
+    .related-section {
+        padding: 40px 24px;
+        border-top: 3px solid #1a1a1a;
+        background: white;
+    }
+    .related-header { margin-bottom: 24px; }
+    .related-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+    }
+    .related-subtitle {
+        color: #666;
+        font-size: 0.85rem;
+        margin-top: 4px;
+    }
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+    }
+    .related-card {
+        border: 3px solid #1a1a1a;
+        box-shadow: 4px 4px 0px #1a1a1a;
+        background: white;
+        text-decoration: none;
+        color: #1a1a1a;
+        transition: all 0.2s;
+        overflow: hidden;
+    }
+    .related-card:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 7px 7px 0px #1a1a1a;
+    }
+    .related-img {
+        height: 120px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .related-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0; left: 0;
+    }
+    .related-emoji {
+        font-size: 2.5rem;
+        position: relative;
+        z-index: 1;
+        opacity: 0.3;
+    }
+    .related-img img + .related-emoji { display: none; }
+    .related-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #FECA57;
+        border: 2px solid #1a1a1a;
+        padding: 2px 8px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        z-index: 2;
+    }
+    .related-info { padding: 12px; }
+    .related-name {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .related-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 0.75rem;
+        color: #666;
+        margin-bottom: 8px;
+    }
+    .related-price {
+        font-size: 0.8rem;
+        color: #FF6B4A;
+        font-weight: 600;
+    }
     </style>
 </head>
 <body>
@@ -485,6 +578,38 @@
     </div>
 </div>
 
+    <!-- Related Events / You May Also Like -->
+    <div v-if="relatedEvents.length" class="related-section">
+        <div class="related-header">
+            <div class="related-title">{{ lang === 'fr' ? 'Vous aimerez aussi' : 'You may also like' }}</div>
+            <div class="related-subtitle">{{ lang === 'fr' ? 'Événements similaires à Madagascar' : 'Similar events in Madagascar' }}</div>
+        </div>
+        <div class="related-grid">
+            <a v-for="rel in relatedEvents" :key="rel.id" 
+               :href="'ticketmada-event.html?id=' + rel.id" 
+               class="related-card">
+                <div class="related-img" :style="{ background: rel.color || '#FF6B4A' }">
+                    <img v-if="rel.image_url" :src="rel.image_url" :alt="rel.name" 
+                         @error="$event.target.style.display='none'">
+                    <span class="related-emoji">{{ rel.emoji || '🎫' }}</span>
+                    <div class="related-badge" v-if="rel.hot">🔥 {{ lang === 'fr' ? 'Populaire' : 'Hot' }}</div>
+                </div>
+                <div class="related-info">
+                    <div class="related-name">{{ rel.name }}</div>
+                    <div class="related-meta">
+                        <span>📅 {{ formatDate(rel.date_start) }}</span>
+                        <span>📍 {{ rel.venue }}</span>
+                    </div>
+                    <div class="related-price">
+                        {{ lang === 'fr' ? 'À partir de' : 'From' }} 
+                        <strong>{{ (rel.min_price || 20000).toLocaleString() }} Ar</strong>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+
 <script src="../js/api-client.js"></script>
 <script src="../js/seatmap-engine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
@@ -517,6 +642,7 @@ const app = createApp({
             alertEmail: '',
             alertZones: [],
             alertSent: false,
+            relatedEvents: [],
             venueTemplate: 'arena',
             mapZones: [],
             listings: []
@@ -626,6 +752,32 @@ const app = createApp({
         },
 
         // Build the interactive venue map from the SeatmapEngine
+                async loadRelatedEvents() {
+            const category = this.event.category || 'concerts';
+            const currentId = this.event.id || this.eventId;
+            try {
+                const res = await window.api.get('/events');
+                if (res.events) {
+                    this.relatedEvents = res.events
+                        .filter(e => e.id != currentId)
+                        .slice(0, 4)
+                        .map(e => ({
+                            ...e,
+                            color: ['#FF6B4A','#4A90FF','#00D9A5','#FECA57','#9B59B6'][e.id % 5],
+                            hot: e.tickets_sold > (e.capacity * 0.7),
+                            min_price: 20000
+                        }));
+                }
+            } catch(e) {
+                // Fallback demo related events
+                this.relatedEvents = [
+                    { id: 2, name: 'Jaojoby - Le Roi du Salegy', emoji: '🎷', date_start: '2026-05-20', venue: 'Toamasina', color: '#4A90FF', min_price: 30000, hot: true },
+                    { id: 3, name: 'Festival Donia 2026', emoji: '🏝️', date_start: '2026-06-10', venue: 'Nosy Be', color: '#00D9A5', min_price: 50000, hot: false },
+                    { id: 4, name: 'Erick Manana Acoustique', emoji: '🎸', date_start: '2026-05-05', venue: 'Antsirabe', color: '#FECA57', min_price: 25000, hot: false },
+                    { id: 5, name: 'CNaPS Sport vs Fosa Juniors', emoji: '⚽', date_start: '2026-04-28', venue: 'Antananarivo', color: '#9B59B6', min_price: 15000, hot: true }
+                ].filter(e => e.id != currentId);
+            }
+        },
         buildVenueMap() {
             const zones = window.SeatmapEngine?.defaultZones || [];
             // Determine template based on event or default
@@ -803,6 +955,10 @@ const app = createApp({
             this.viewersCount = Math.max(6, this.viewersCount);
             if (Math.random() > 0.6) this.recentSales = Math.min(this.recentSales + 1, 20);
         }, 10000);
+
+        
+        // Load related events
+        this.loadRelatedEvents();
 
         // Keyboard: Escape closes popup
         document.addEventListener('keydown', e => { if (e.key === 'Escape') this.showQty = false; });
