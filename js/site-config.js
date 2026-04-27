@@ -13,6 +13,9 @@ window.TICKETMADA_CONFIG = {
     // Backend API URL (update when Render is deployed)
     API_BASE: '',  // empty = same origin, set to 'https://ticketmada-api.onrender.com' for production
     
+    // Base path for GitHub Pages (set to '/ticketmada' for github.io, empty for custom domain)
+    BASE_PATH: '',  // '/ticketmada' for GitHub Pages, '' for local dev or custom domain
+    
     // Pages config
     pages: {
         // Dev-only pages (hidden in production)
@@ -28,6 +31,14 @@ window.TICKETMADA_CONFIG = {
 
 (function() {
     const cfg = window.TICKETMADA_CONFIG;
+
+
+    // Inject <base> tag for GitHub Pages path support
+    if (cfg.BASE_PATH) {
+        const base = document.createElement('base');
+        base.href = cfg.BASE_PATH + '/';
+        document.head.prepend(base);
+    }
 
     // Set API base URL for api-client.js
     if (cfg.API_BASE) {
