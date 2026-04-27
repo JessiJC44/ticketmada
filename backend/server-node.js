@@ -6,7 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const PROJECT_ROOT = path.join(__dirname, '..');
 const DB_PATH = path.join(PROJECT_ROOT, 'data', 'ticketmada.db');
 const COMMISSION_RATE = 0.03;

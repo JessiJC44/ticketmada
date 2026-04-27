@@ -28,6 +28,12 @@ window.TICKETMADA_CONFIG = {
 
 (function() {
     const cfg = window.TICKETMADA_CONFIG;
+
+    // Set API base URL for api-client.js
+    if (cfg.API_BASE) {
+        window.API_CONFIG = { baseURL: cfg.API_BASE + '/api' };
+    }
+
     if (cfg.MODE !== 'production') return; // In dev mode, do nothing
 
     const currentFile = window.location.pathname.split('/').pop() || 'index.html';
