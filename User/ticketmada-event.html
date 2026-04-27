@@ -345,61 +345,28 @@
 
     <!-- Main: Seat Map + Listings -->
     <div class="main-content">
-        <!-- Left: Interactive Seat Map -->
+        <!-- Left: Interactive Venue Canvas -->
         <div class="seatmap-panel">
             <div class="seatmap-toolbar">
                 <h3>{{ lang === 'fr' ? '🗺️ Plan de la salle' : '🗺️ Venue Map' }}</h3>
                 <div class="seatmap-zoom">
-                    <button class="zoom-btn" @click="zoomOut" title="Zoom out">−</button>
-                    <button class="zoom-btn" @click="zoomReset" title="Reset">⟲</button>
-                    <button class="zoom-btn" @click="zoomIn" title="Zoom in">+</button>
+                    <button class="zoom-btn" @click="canvasZoomOut" title="Zoom out">−</button>
+                    <button class="zoom-btn" @click="canvasReset" title="Reset">⟲</button>
+                    <button class="zoom-btn" @click="canvasZoomIn" title="Zoom in">+</button>
                 </div>
             </div>
-            <div class="seatmap-container" ref="seatmapContainer">
-                <div class="seatmap-svg-wrapper" :style="{ transform: `scale(${zoom}) translate(${panX}px, ${panY}px)` }">
-                    <svg :viewBox="svgViewBox" class="seatmap-svg" xmlns="http://www.w3.org/2000/svg" ref="seatmapSvg">
-                        <!-- Stage -->
-                        <rect :x="stageX" :y="stageY" :width="stageW" :height="stageH" rx="12" class="stage-rect"/>
-                        <text :x="stageX + stageW/2" :y="stageY + stageH/2 + 6" text-anchor="middle" class="stage-text" font-size="18">STAGE</text>
-
-                        <!-- Zones -->
-                        <g v-for="zone in mapZones" :key="zone.id"
-                           class="zone-group"
-                           :class="{ active: selectedZone === zone.id }"
-                           @click="selectZone(zone.id)"
-                           @mouseenter="hoverZone = zone.id"
-                           @mouseleave="hoverZone = null">
-                            <rect :x="zone.x" :y="zone.y" :width="zone.w" :height="zone.h"
-                                  :rx="zone.rx || 6" class="zone-bg" :fill="zone.color" fill-opacity="0.75"/>
-                            <!-- Seat dots pattern -->
-                            <g v-for="dot in zone.dots" :key="dot.cx + '-' + dot.cy">
-                                <circle :cx="dot.cx" :cy="dot.cy" r="4" fill="white" opacity="0.5"/>
-                            </g>
-                            <text :x="zone.x + zone.w/2" :y="zone.y + zone.h/2 - 8" text-anchor="middle"
-                                  class="zone-label" fill="white" :font-size="zone.labelSize || 16">{{ zone.name }}</text>
-                            <text :x="zone.x + zone.w/2" :y="zone.y + zone.h/2 + 10" text-anchor="middle"
-                                  class="zone-price" fill="white" font-size="13">{{ formatPrice(zone.price) }} Ar</text>
-                            <text :x="zone.x + zone.w/2" :y="zone.y + zone.h/2 + 26" text-anchor="middle"
-                                  class="zone-count" fill="white" font-size="11">{{ zone.available }} {{ lang === 'fr' ? 'dispo' : 'avail.' }}</text>
-                        </g>
-
-                        <!-- Hover tooltip -->
-                        <g v-if="hoverZone && getZone(hoverZone)" :transform="`translate(${getZone(hoverZone).x + getZone(hoverZone).w/2 - 70}, ${getZone(hoverZone).y - 45})`">
-                            <rect x="0" y="0" width="140" height="36" rx="4" fill="var(--bg-dark)" opacity="0.92"/>
-                            <text x="70" y="15" text-anchor="middle" fill="white" font-size="11" font-family="Syne" font-weight="700">{{ getZone(hoverZone).name }}</text>
-                            <text x="70" y="29" text-anchor="middle" fill="var(--accent-yellow)" font-size="11" font-family="DM Sans" font-weight="600">{{ lang === 'fr' ? 'Cliquez pour sélectionner' : 'Click to select' }}</text>
-                        </g>
-                    </svg>
-                </div>
-            </div>
+            <div id="venue-canvas-container" style="width:100%;height:480px;"></div>
             <div class="seatmap-legend">
                 <div class="legend-item" v-for="zone in mapZones" :key="'leg-'+zone.id"
-                     :class="{ active: selectedZone === zone.id }"
-                     @click="selectZone(zone.id === selectedZone ? null : zone.id)">
+                     :class="{ active: focusedZone === zone.id }"
+                     @click="zoomToZone(zone.id)">
                     <div class="legend-dot" :style="{ background: zone.color }"></div>
                     {{ zone.name }} — {{ formatPrice(zone.price) }} Ar
                     <span class="legend-avail">({{ zone.available }})</span>
                 </div>
+            </div>
+            <div style="font-size:0.75rem;color:#999;text-align:center;margin-top:6px;">
+                {{ lang === 'fr' ? '🖱️ Cliquez sur un siège pour le sélectionner · Glissez pour déplacer · Scrollez pour zoomer' : '🖱️ Click a seat to select · Drag to pan · Scroll to zoom' }}
             </div>
             <!-- View from Seat -->
             <div class="view-seat-panel" :class="{ active: selectedZone }">
@@ -464,7 +431,7 @@
                 <button class="filter-chip" :class="{ active: selectedZone === null }" @click="selectedZone = null">
                     {{ lang === 'fr' ? 'Tous' : 'All' }}
                 </button>
-                <button class="filter-chip" v-for="zone in mapZones" :key="'f-'+zone.id"
+                <button class="filter-chip" v-for="zone in venueZones" :key="'f-'+zone.id"
                         :class="{ active: selectedZone === zone.id }"
                         @click="selectZone(zone.id)">
                     {{ zone.shortName || zone.name }}
@@ -578,7 +545,6 @@
             </div>
         </div>
     </div>
-</div>
 
     <!-- Related Events / You May Also Like -->
     <div v-if="relatedEvents.length" class="related-section">
@@ -610,10 +576,10 @@
             </a>
         </div>
     </div>
-
+</div>
 
 <script src="../js/api-client.js"></script>
-<script src="../js/seatmap-engine.js"></script>
+<script src="../js/venue-canvas.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
 <script>
@@ -644,6 +610,10 @@ const app = createApp({
             alertEmail: '',
             alertZones: [],
             alertSent: false,
+            venueCanvas: null,
+            canvasSelected: [],
+            focusedZone: null,
+            venueZones: [],
             relatedEvents: [],
             venueTemplate: 'arena',
             mapZones: [],
@@ -703,6 +673,11 @@ const app = createApp({
         toggleLang() {
             this.lang = this.lang === 'fr' ? 'en' : 'fr';
             localStorage.setItem('ticketmada-lang', this.lang);
+            // Rebuild canvas with new lang
+            if (this.venueCanvas) {
+                this.venueCanvas.config.lang = this.lang;
+                this.initVenueCanvas();
+            }
         },
         formatDate(d) {
             if (!d) return '—';
@@ -714,6 +689,12 @@ const app = createApp({
         },
         selectZone(id) {
             this.selectedZone = this.selectedZone === id ? null : id;
+            this.focusedZone = this.selectedZone;
+            if (this.venueCanvas && this.selectedZone) {
+                this.venueCanvas.zoomToBlock(this.selectedZone);
+            } else if (this.venueCanvas) {
+                this.venueCanvas.resetView();
+            }
         },
         getZone(id) {
             return this.mapZones.find(z => z.id === id);
@@ -728,23 +709,37 @@ const app = createApp({
             if (!this.alertZones.length) this.alertZones = this.mapZones.map(z => z.id);
             this.alertSent = true;
         },
-        zoomIn() { this.zoom = Math.min(2.5, this.zoom + 0.2); },
-        zoomOut() { this.zoom = Math.max(0.5, this.zoom - 0.2); },
-        zoomReset() { this.zoom = 1; this.panX = 0; this.panY = 0; },
+        // VenueCanvas zoom controls
+        canvasZoomIn() { if (this.venueCanvas) this.venueCanvas.zoomIn(); },
+        canvasZoomOut() { if (this.venueCanvas) this.venueCanvas.zoomOut(); },
+        canvasReset() { if (this.venueCanvas) { this.venueCanvas.resetView(); this.focusedZone = null; this.selectedZone = null; } },
+        zoomToZone(zoneId) {
+            this.focusedZone = this.focusedZone === zoneId ? null : zoneId;
+            this.selectedZone = this.focusedZone;
+            if (this.venueCanvas && this.focusedZone) {
+                this.venueCanvas.zoomToBlock(this.focusedZone);
+            } else if (this.venueCanvas) {
+                this.venueCanvas.resetView();
+            }
+        },
         openQuantity(listing) {
             this.qtyListing = listing;
             this.qty = 2;
             this.showQty = true;
         },
         confirmPurchase() {
-            // Navigate to checkout with order params
+            // If user selected seats on canvas, build info from those
+            let zoneName = this.qtyListing.zoneName;
+            let zoneColor = this.qtyListing.color;
+            let price = this.qtyListing.price;
+            
             const params = new URLSearchParams({
                 event_id: this.event.id || this.eventId,
                 event_name: this.event.name || 'Événement',
-                zone_name: this.qtyListing.zoneName,
-                zone_color: this.qtyListing.color,
+                zone_name: zoneName,
+                zone_color: zoneColor,
                 qty: this.qty,
-                price: this.qtyListing.price,
+                price: price,
                 date: this.formatDate(this.event.date_start),
                 venue: this.event.venue || '',
                 image: this.event.image_url || '',
@@ -752,8 +747,6 @@ const app = createApp({
             });
             window.location.href = 'ticketmada-checkout.html?' + params.toString();
         },
-
-        // Build the interactive venue map from the SeatmapEngine
                 async loadRelatedEvents() {
             const category = this.event.category || 'concerts';
             const currentId = this.event.id || this.eventId;
@@ -771,7 +764,6 @@ const app = createApp({
                         }));
                 }
             } catch(e) {
-                // Fallback demo related events
                 this.relatedEvents = [
                     { id: 2, name: 'Jaojoby - Le Roi du Salegy', emoji: '🎷', date_start: '2026-05-20', venue: 'Toamasina', color: '#4A90FF', min_price: 30000, hot: true },
                     { id: 3, name: 'Festival Donia 2026', emoji: '🏝️', date_start: '2026-06-10', venue: 'Nosy Be', color: '#00D9A5', min_price: 50000, hot: false },
@@ -780,29 +772,40 @@ const app = createApp({
                 ].filter(e => e.id != currentId);
             }
         },
-        buildVenueMap() {
-            const zones = window.SeatmapEngine?.defaultZones || [];
-            // Determine template based on event or default
+        
+        initVenueCanvas() {
             const capacity = this.event.capacity || 5000;
-            let tpl = 'arena';
-            if (capacity <= 200) tpl = 'cabaret';
-            else if (capacity <= 500) tpl = 'conference';
-            else if (capacity <= 1000) tpl = 'theater';
-            else if (capacity <= 5000) tpl = 'arena';
-            else tpl = 'stadium';
-
-            this.venueTemplate = tpl;
-            const seatData = window.SeatmapEngine?.generate(tpl);
-
-            // Create interactive zone blocks for the SVG
-            // We'll lay out zones as large clickable rectangles
-            const svgW = 700, svgH = 500;
-            const stageBottom = 70;
-
-            // Zone layout config per template type
-            const layouts = this.getZoneLayout(tpl, svgW, svgH, stageBottom, capacity);
-            this.mapZones = layouts;
-
+            const ticketsSold = this.event.tickets_sold || 0;
+            const remaining = Math.max(0, capacity - ticketsSold);
+            const dist = { pit: 0.07, vip: 0.08, premium: 0.20, standard: 0.35, eco: 0.30 };
+            
+            // Define the 5 zones with seat grid sizing
+            const zoneConfigs = [
+                { id: 'pit', name: this.lang === 'fr' ? 'Fosse' : 'Pit', color: '#9B59B6', price: 60000, rows: 3, seatsPerRow: 12 },
+                { id: 'vip', name: 'VIP', color: '#FF6B4A', price: 150000, rows: 3, seatsPerRow: 16 },
+                { id: 'premium', name: 'Premium', color: '#FECA57', price: 80000, rows: 5, seatsPerRow: 20 },
+                { id: 'standard', name: 'Standard', color: '#4A90FF', price: 40000, rows: 6, seatsPerRow: 24 },
+                { id: 'eco', name: this.lang === 'fr' ? 'Économique' : 'Economy', color: '#00D9A5', price: 20000, rows: 5, seatsPerRow: 22 }
+            ];
+            
+            // Calculate available and capacity per zone
+            const zones = zoneConfigs.map(z => {
+                const cap = z.rows * z.seatsPerRow;
+                const avail = Math.round(remaining * (dist[z.id] || 0.2));
+                return { ...z, capacity: cap, available: Math.min(avail, cap) };
+            });
+            
+            // Populate mapZones for legend and sidebar
+            this.mapZones = zones.map(z => ({
+                id: z.id,
+                name: z.name,
+                color: z.color,
+                price: z.price,
+                available: z.available,
+                shortName: z.id === 'pit' ? (this.lang === 'fr' ? 'Fosse' : 'Pit') : z.name
+            }));
+            this.venueZones = this.mapZones;
+            
             // Generate listings from zones
             this.listings = [];
             const viewQualities = {
@@ -813,9 +816,8 @@ const app = createApp({
                 pit: { fr: 'Vue immersive', en: 'Immersive view' }
             };
             const qualityBadges = { vip: 'VIP', premium: 'Premium', pit: 'Fosse' };
-
-            layouts.forEach((zone, idx) => {
-                // Create multiple listing entries per zone to simulate ticket groupings
+            
+            zones.forEach((zone, idx) => {
                 const groupCount = Math.min(4, Math.max(1, Math.ceil(zone.available / 50)));
                 for (let g = 0; g < groupCount; g++) {
                     const rowLetter = String.fromCharCode(65 + g * 3 + Math.floor(Math.random() * 3));
@@ -823,7 +825,7 @@ const app = createApp({
                     const groupAvail = g === groupCount - 1
                         ? zone.available - Math.floor(zone.available / groupCount) * (groupCount - 1)
                         : Math.floor(zone.available / groupCount);
-
+                    
                     this.listings.push({
                         id: zone.id + '-' + g,
                         zoneId: zone.id,
@@ -831,7 +833,7 @@ const app = createApp({
                         color: zone.color,
                         seatInfo: zone.id === 'pit'
                             ? (this.lang === 'fr' ? 'Accès fosse' : 'Pit access')
-                            : (this.lang === 'fr' ? `Rang. ${rowLetter}, Places ${seatStart}-${seatStart + 8}` : `Row ${rowLetter}, Seats ${seatStart}-${seatStart + 8}`),
+                            : (this.lang === 'fr' ? 'Rang. ' + rowLetter + ', Places ' + seatStart + '-' + (seatStart + 8) : 'Row ' + rowLetter + ', Seats ' + seatStart + '-' + (seatStart + 8)),
                         viewQuality: viewQualities[zone.id]?.[this.lang] || viewQualities.standard[this.lang],
                         price: zone.price,
                         available: groupAvail,
@@ -841,70 +843,34 @@ const app = createApp({
                     });
                 }
             });
-        },
-
-        getZoneLayout(tpl, svgW, svgH, stageBottom, capacity) {
-            const zones = window.SeatmapEngine?.defaultZones || [
-                { id: 'vip', name: 'VIP', color: '#FF6B4A', price: 150000 },
-                { id: 'premium', name: 'Premium', color: '#FECA57', price: 80000 },
-                { id: 'standard', name: 'Standard', color: '#4A90FF', price: 40000 },
-                { id: 'eco', name: 'Économique', color: '#00D9A5', price: 20000 },
-                { id: 'pit', name: 'Fosse/Debout', color: '#9B59B6', price: 60000 }
-            ];
-
-            // Calculate availability per zone as fractions of remaining capacity
-            const ticketsSold = this.event.tickets_sold || 0;
-            const remaining = Math.max(0, capacity - ticketsSold);
-            const zoneDistribution = { vip: 0.08, premium: 0.20, standard: 0.35, eco: 0.30, pit: 0.07 };
-
-            const generateDots = (x, y, w, h) => {
-                const dots = [];
-                const cols = Math.floor(w / 22);
-                const rows = Math.floor(h / 20);
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        dots.push({ cx: x + 14 + c * 22, cy: y + 14 + r * 20 });
+            
+            // Destroy old canvas if exists
+            if (this.venueCanvas) {
+                this.venueCanvas.destroy();
+            }
+            
+            // Create VenueCanvas instance
+            const self = this;
+            this.venueCanvas = new VenueCanvas('venue-canvas-container', {
+                seatRadius: 8,
+                seatGap: 4,
+                blockGap: 35,
+                maxSelect: 10,
+                lang: this.lang,
+                onChange(selected) {
+                    self.canvasSelected = selected;
+                    // Auto-select the zone of the last selected seat
+                    if (selected.length > 0) {
+                        const lastSeat = selected[selected.length - 1];
+                        const blockId = lastSeat.id.split('-')[0];
+                        self.selectedZone = blockId;
+                        self.focusedZone = blockId;
                     }
                 }
-                return dots;
-            };
-
-            // Common layout: stage at top, zones stacked below
-            const pad = 20;
-            const zoneGap = 12;
-            const usableW = svgW - pad * 2;
-            const usableH = svgH - stageBottom - pad - 10;
-            const zoneH = (usableH - zoneGap * 4) / 5;
-
-            // For arena/stadium: pit in front, then vip, premium, standard, eco
-            const hasPit = ['arena', 'stadium', 'festival'].includes(tpl);
-            const zoneOrder = hasPit
-                ? ['pit', 'vip', 'premium', 'standard', 'eco']
-                : ['vip', 'premium', 'standard', 'eco'];
-
-            const result = [];
-            zoneOrder.forEach((zid, idx) => {
-                const z = zones.find(z => z.id === zid);
-                if (!z) return;
-                const avail = Math.round(remaining * (zoneDistribution[zid] || 0.2));
-                const yPos = stageBottom + idx * (zoneH + zoneGap);
-                const narrowing = idx * 12; // progressive narrowing for realism
-                const zoneRect = {
-                    ...z,
-                    x: pad + narrowing,
-                    y: yPos,
-                    w: usableW - narrowing * 2,
-                    h: zoneH,
-                    rx: 8,
-                    available: avail,
-                    shortName: z.id === 'pit' ? (this.lang === 'fr' ? 'Fosse' : 'Pit') : z.name,
-                    labelSize: z.id === 'pit' ? 14 : 16,
-                    dots: generateDots(pad + narrowing, yPos, usableW - narrowing * 2, zoneH)
-                };
-                result.push(zoneRect);
             });
-
-            return result;
+            
+            // Generate venue from zones
+            this.venueCanvas.generateFromZones(zones, 'concert');
         }
     },
     async mounted() {
@@ -946,7 +912,7 @@ const app = createApp({
             if (seatsResult.zones) { this.apiZones = seatsResult.zones; }
         } catch(e) { console.warn('Seats API not available, using calculated zones'); }
         this.alertEmail = window.api?.getUser()?.email || '';
-        this.buildVenueMap();
+        this.initVenueCanvas();
 
         
         // Social proof simulation
