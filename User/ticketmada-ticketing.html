@@ -246,7 +246,7 @@
     <div id="app">
         <nav class="navbar">
             <div class="navbar-inner">
-                <a href="User/ticketmada-landing.html" class="logo"><div class="logo-box">🎫</div><span class="logo-text">Ticket<span>Mada</span></span></a>
+                <a href="ticketmada-landing.html" class="logo"><div class="logo-box">🎫</div><span class="logo-text">Ticket<span>Mada</span></span></a>
                 <ul class="nav-links">
                     <li><a href="#fonctionnement">{{ t.nav.howItWorks }}</a></li>
                     <li><a href="#options">{{ t.nav.options }}</a></li>
@@ -256,7 +256,7 @@
                 <div class="nav-cta">
                     <button class="lang-toggle" @click="toggleLang" :title="lang === 'fr' ? 'Switch to English' : 'Passer en Français'">{{ lang === 'fr' ? '🇬🇧' : '🇫🇷' }}</button>
                     <template v-if="!isLoggedIn">
-                        <a href="User/ticketmada-organisateur.html" class="brutal-btn brutal-btn-secondary">{{ t.nav.organizers }}</a>
+                        <a href="ticketmada-organisateur.html" class="brutal-btn brutal-btn-secondary">{{ t.nav.organizers }}</a>
                         <a href="#" class="brutal-btn brutal-btn-primary" @click.prevent="openAuth('register')">{{ t.nav.getStarted }}</a>
                     </template>
                     <div class="profile-wrapper" v-else>
@@ -386,7 +386,7 @@
                 <p class="cta-description">{{ t.cta.description }}</p>
                 <div class="cta-actions">
                     <a href="#" class="brutal-btn brutal-btn-primary" @click.prevent="openAuth('register')">{{ t.cta.cta1 }} <v-icon>mdi-arrow-right</v-icon></a>
-                    <a href="User/ticketmada-organisateur.html" class="brutal-btn brutal-btn-secondary">{{ t.cta.cta2 }}</a>
+                    <a href="ticketmada-organisateur.html" class="brutal-btn brutal-btn-secondary">{{ t.cta.cta2 }}</a>
                 </div>
             </div>
         </section>
@@ -395,8 +395,8 @@
         <footer class="footer">
             <div class="footer-inner">
                 <div class="footer-grid">
-                    <div class="footer-brand"><a href="User/ticketmada-landing.html" class="logo"><div class="logo-box">🎫</div><span class="logo-text">Ticket<span>Mada</span></span></a><p>{{ t.footer.description }}</p><div class="social-links"><a href="#" class="social-link"><v-icon>mdi-facebook</v-icon></a><a href="#" class="social-link"><v-icon>mdi-instagram</v-icon></a><a href="#" class="social-link"><v-icon>mdi-twitter</v-icon></a><a href="#" class="social-link"><v-icon>mdi-github</v-icon></a></div></div>
-                    <div class="footer-column"><h4>{{ t.footer.product }}</h4><ul><li><a href="User/ticketmada-organisateur.html">{{ t.nav.organizers }}</a></li><li><a href="#">{{ t.footer.docs }}</a></li><li><a href="#">{{ t.footer.changelog }}</a></li></ul></div>
+                    <div class="footer-brand"><a href="ticketmada-landing.html" class="logo"><div class="logo-box">🎫</div><span class="logo-text">Ticket<span>Mada</span></span></a><p>{{ t.footer.description }}</p><div class="social-links"><a href="#" class="social-link"><v-icon>mdi-facebook</v-icon></a><a href="#" class="social-link"><v-icon>mdi-instagram</v-icon></a><a href="#" class="social-link"><v-icon>mdi-twitter</v-icon></a><a href="#" class="social-link"><v-icon>mdi-github</v-icon></a></div></div>
+                    <div class="footer-column"><h4>{{ t.footer.product }}</h4><ul><li><a href="ticketmada-organisateur.html">{{ t.nav.organizers }}</a></li><li><a href="#">{{ t.footer.docs }}</a></li><li><a href="#">{{ t.footer.changelog }}</a></li></ul></div>
                     <div class="footer-column"><h4>{{ t.footer.developers }}</h4><ul><li><a href="#">{{ t.footer.apiRef }}</a></li><li><a href="#">SDK</a></li><li><a href="#">{{ t.footer.examples }}</a></li></ul></div>
                     <div class="footer-column"><h4>{{ t.footer.support }}</h4><ul><li><a href="#">{{ t.footer.helpCenter }}</a></li><li><a href="#">{{ t.footer.contact }}</a></li><li><a href="#">{{ t.footer.status }}</a></li></ul></div>
                 </div>

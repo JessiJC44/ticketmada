@@ -191,7 +191,7 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="User/ticketmada-landing.html" class="logo">
+            <a href="ticketmada-landing.html" class="logo">
                 <div class="logo-box">🎫</div>
                 <span class="logo-text">Ticket<span>Mada</span></span>
             </a>
@@ -440,7 +440,7 @@
             <div class="success-ticket-code">{{ ticketCode }}</div>
             <p style="font-size:0.85rem;">{{ lang === 'fr' ? 'Un email de confirmation a été envoyé à' : 'A confirmation email was sent to' }} <strong>{{ form.email }}</strong></p>
             <div class="success-actions">
-                <a href="User/ticketmada-landing.html" class="success-btn success-btn-secondary">{{ lang === 'fr' ? 'Accueil' : 'Home' }}</a>
+                <a href="ticketmada-landing.html" class="success-btn success-btn-secondary">{{ lang === 'fr' ? 'Accueil' : 'Home' }}</a>
                 <button class="success-btn success-btn-primary" @click="window.print()">{{ lang === 'fr' ? 'Imprimer' : 'Print' }}</button>
             </div>
         </div>
@@ -489,7 +489,7 @@ const app = createApp({
             const base = this.order.subtotal + this.order.serviceFee;
             return this.payMethod === 'card' ? base + this.order.cardFee : base;
         },
-        backUrl() { return `/User/ticketmada-event.html?id=${this.order.eventId}`; }
+        backUrl() { return `ticketmada-event.html?id=${this.order.eventId}`; }
     },
     methods: {
         formatPrice(p) { return p ? p.toLocaleString('fr-FR') : '0'; },
