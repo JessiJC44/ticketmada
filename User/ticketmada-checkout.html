@@ -96,6 +96,17 @@
         .mm-provider-dot { width: 12px; height: 12px; border: 2px solid var(--border-dark); border-radius: 50%; }
         .mm-provider.selected .mm-provider-dot { background: var(--accent-coral); }
 
+        
+        /* Delivery methods */
+        .delivery-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .delivery-option { padding: 18px 14px; border: 3px solid #ddd; cursor: pointer; transition: all 0.15s; text-align: center; }
+        .delivery-option:hover { border-color: var(--border-dark); background: #fef9f0; }
+        .delivery-option.selected { border-color: var(--accent-coral); background: #fff5f0; box-shadow: var(--shadow-brutal-sm); }
+        .delivery-option-icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .delivery-option-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+        .delivery-option-desc { font-size: 0.7rem; color: var(--text-light); line-height: 1.4; }
+        .delivery-option-free { display: inline-block; background: var(--accent-mint); color: white; padding: 2px 8px; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+
         /* Guarantee badge */
         .guarantee { display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: #f0fff8; border: 2px solid var(--accent-mint); margin-top: 8px; }
         .guarantee-icon { font-size: 1.8rem; }
@@ -245,6 +256,36 @@
                 </div>
             </div>
 
+            <!-- Delivery Method -->
+            <div class="form-section">
+                <div class="form-section-header">
+                    <v-icon>mdi-truck-delivery</v-icon>
+                    <h3>{{ lang === 'fr' ? 'Mode de livraison' : 'Delivery Method' }}</h3>
+                </div>
+                <div class="form-body">
+                    <div class="delivery-methods">
+                        <div class="delivery-option" :class="{ selected: deliveryMethod === 'eticket' }" @click="deliveryMethod = 'eticket'">
+                            <div class="delivery-option-icon">📱</div>
+                            <div class="delivery-option-name">E-Ticket</div>
+                            <div class="delivery-option-desc">{{ lang === 'fr' ? 'Billet numérique avec QR code envoyé par email' : 'Digital ticket with QR code sent by email' }}</div>
+                            <div class="delivery-option-free">{{ lang === 'fr' ? 'Gratuit' : 'Free' }}</div>
+                        </div>
+                        <div class="delivery-option" :class="{ selected: deliveryMethod === 'mobile' }" @click="deliveryMethod = 'mobile'">
+                            <div class="delivery-option-icon">📲</div>
+                            <div class="delivery-option-name">Mobile</div>
+                            <div class="delivery-option-desc">{{ lang === 'fr' ? 'Transféré sur l\'app TicketMada Scanner' : 'Transferred to TicketMada Scanner app' }}</div>
+                            <div class="delivery-option-free">{{ lang === 'fr' ? 'Gratuit' : 'Free' }}</div>
+                        </div>
+                        <div class="delivery-option" :class="{ selected: deliveryMethod === 'print' }" @click="deliveryMethod = 'print'">
+                            <div class="delivery-option-icon">🖨️</div>
+                            <div class="delivery-option-name">{{ lang === 'fr' ? 'Imprimer' : 'Print' }}</div>
+                            <div class="delivery-option-desc">{{ lang === 'fr' ? 'PDF à imprimer chez vous avec code-barres' : 'PDF to print at home with barcode' }}</div>
+                            <div class="delivery-option-free">{{ lang === 'fr' ? 'Gratuit' : 'Free' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Payment Method -->
             <div class="form-section">
                 <div class="form-section-header">
@@ -340,6 +381,10 @@
                         <span>{{ lang === 'fr' ? 'Frais de service (3%)' : 'Service fee (3%)' }}</span>
                         <span>{{ formatPrice(order.serviceFee) }} Ar</span>
                     </div>
+                    <div class="summary-line border">
+                        <span><v-icon size="x-small">mdi-truck-delivery</v-icon> {{ deliveryMethod === 'eticket' ? 'E-Ticket' : deliveryMethod === 'mobile' ? 'Mobile' : (lang === 'fr' ? 'Imprimer' : 'Print') }}</span>
+                        <span style="color:var(--accent-mint);font-weight:600;">{{ lang === 'fr' ? 'Gratuit' : 'Free' }}</span>
+                    </div>
                     <div class="summary-line" v-if="payMethod === 'card'">
                         <span>{{ lang === 'fr' ? 'Frais de carte' : 'Card fee' }}</span>
                         <span>{{ formatPrice(order.cardFee) }} Ar</span>
@@ -417,6 +462,7 @@ const app = createApp({
             viewersCount: 0,
             recentSales: 0,
             // Payment
+            deliveryMethod: 'eticket',
             payMethod: 'mobile',
             mmProvider: 'mvola',
             processing: false,
