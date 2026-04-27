@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TicketMada - SuperAdmin Dashboard</title>
     
@@ -220,13 +220,13 @@
                     <button type="submit" class="auth-submit">{{ authMode === 'login' ? 'Se connecter' : 'Créer mon compte' }}</button>
                 </form>
                 <p class="auth-footer-text"><template v-if="authMode === 'login'">Pas de compte ? <a href="#" @click.prevent="authMode = 'register'">S'inscrire</a></template><template v-else>Déjà un compte ? <a href="#" @click.prevent="authMode = 'login'">Se connecter</a></template></p>
-                <a href="/User/ticketmada-landing.html" class="auth-back">&larr; Retour à l'accueil</a>
+                <a href="User/ticketmada-landing.html" class="auth-back">&larr; Retour à l'accueil</a>
             </div>
         </div>
         <div class="dashboard-layout">
             <aside class="sidebar">
                 <div class="sidebar-header">
-                    <a href="/User/ticketmada-landing.html" class="sidebar-logo"><div class="logo-box">🎫</div><span class="logo-text">Ticket<span>Mada</span></span></a>
+                    <a href="User/ticketmada-landing.html" class="sidebar-logo"><div class="logo-box">🎫</div><span class="logo-text">Ticket<span>Mada</span></span></a>
                     <div class="admin-badge">SuperAdmin</div>
                 </div>
                 <nav class="sidebar-nav">
